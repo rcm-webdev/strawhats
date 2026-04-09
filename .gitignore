@@ -3,3 +3,8 @@ dist/
 .env
 *.env.local
 .DS_Store
+.worktrees/
+# Playwright
+playwright/.auth/
+playwright-report/
+test-results/

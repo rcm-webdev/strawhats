@@ -11,9 +11,19 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
+    // Auth setup runs first — logs in and saves session to playwright/.auth/user.json
+    {
+      name: "setup",
+      testMatch: /.*\.setup\.ts/,
+    },
+    // Main test project — depends on setup, starts with a signed-in session
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "playwright/.auth/user.json",
+      },
+      dependencies: ["setup"],
     },
   ],
   webServer: [
