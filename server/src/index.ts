@@ -3,6 +3,9 @@ import express from "express";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
+import binsRouter from "./routes/bins";
+import itemsRouter from "./routes/items";
+import searchRouter from "./routes/search";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -22,10 +25,10 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-// TODO: mount routes here in Plan 2
-// app.use("/api/bins", binsRouter);
-// app.use("/api/items", itemsRouter);
-// app.use("/api/search", searchRouter);
+app.use("/api/bins", binsRouter);
+app.use("/api/bins", itemsRouter);   // POST /api/bins/:id/items
+app.use("/api/items", itemsRouter);  // PUT/DELETE /api/items/:id
+app.use("/api/search", searchRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}. You better catch it!`);
