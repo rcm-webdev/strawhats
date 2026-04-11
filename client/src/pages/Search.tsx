@@ -1,1 +1,72 @@
-export default function Search() { return <div>Search</div>; }
+import { useState, useEffect } from "react";
+import { useSearchParams, Link } from "react-router";
+import { apiFetchJson } from "../lib/api";
+import type { SearchResult } from "@strawhats/shared";
+
+export default function Search() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const q = searchParams.get("q") ?? "";
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState(q);
+
+  useEffect(() => {
+    if (!q.trim()) return;
+    setLoading(true);
+    setError(null);
+
+    apiFetchJson<SearchResult[]>(`/api/search?q=${encodeURIComponent(q)}`)
+      .then(setResults)
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [q]);
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (inputValue.trim()) {
+      setSearchParams({ q: inputValue.trim() });
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: 700, margin: "40px auto", padding: "0 16px" }}>
+      <Link to="/dashboard">← Back</Link>
+      <h1>Search Items</h1>
+
+      <form onSubmit={handleSearch} style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+        <input
+          type="search"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder="Search by item name..."
+          style={{ flexGrow: 1 }}
+          autoFocus
+        />
+        <button type="submit">Search</button>
+      </form>
+
+      {loading && <p>Searching...</p>}
+      {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
+
+      {!loading && q && results.length === 0 && (
+        <p>No items found for "{q}".</p>
+      )}
+
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        {results.map((result) => (
+          <li key={result.item.id} style={{ borderBottom: "1px solid #eee", padding: "12px 0" }}>
+            <strong>{result.item.name}</strong>
+            {result.item.description && <span> — {result.item.description}</span>}
+            <br />
+            <span style={{ color: "#666" }}>
+              📦 <Link to={`/bins/${result.binId}`}>{result.binName}</Link>
+              {" · "}
+              📍 {result.binLocation}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
