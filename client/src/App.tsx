@@ -9,6 +9,7 @@ import BinEdit from "./pages/BinEdit";
 import BinLabel from "./pages/BinLabel";
 import Search from "./pages/Search";
 import AdminUsers from "./pages/AdminUsers";
+import Scanner from "./pages/Scanner";
 
 export default function App() {
   return (
@@ -73,6 +74,15 @@ export default function App() {
         element={
           <ProtectedRoute requireAdmin>
             <AdminUsers />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/scan"
+        element={
+          <ProtectedRoute>
+            <Scanner />
           </ProtectedRoute>
         }
       />

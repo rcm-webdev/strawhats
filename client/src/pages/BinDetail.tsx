@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useParams, Link } from "react-router";
 import { apiFetch, apiFetchJson } from "../lib/api";
+import QRCode from "../components/QRCode";
 import type { Bin, Item } from "@strawhats/shared";
 
 export default function BinDetail() {
@@ -67,9 +68,14 @@ export default function BinDetail() {
         </div>
       </div>
 
-      {/* QR code rendered here in Plan 4 */}
-      <div id="qr-placeholder" style={{ margin: "16px 0", color: "#999" }}>
-        QR code — coming in Plan 4
+      <div style={{ margin: "16px 0" }}>
+        <QRCode
+          url={`${window.location.origin}/bins/${bin.id}`}
+          size={160}
+        />
+        <p style={{ fontSize: 12, color: "#666", margin: "4px 0" }}>
+          Scan to view this bin
+        </p>
       </div>
 
       <h2>Items ({bin.items?.length ?? 0})</h2>

@@ -34,6 +34,8 @@ export default function Dashboard() {
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>My Bins</h1>
         <div>
+          <Link to="/scan">📷 Scan</Link>
+          {" | "}
           <Link to="/bins/new">+ New Bin</Link>
           {" | "}
           <button onClick={handleSignOut}>Sign Out</button>
