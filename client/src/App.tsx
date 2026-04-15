@@ -8,7 +8,7 @@ import BinDetail from "./pages/BinDetail";
 import BinEdit from "./pages/BinEdit";
 import BinLabel from "./pages/BinLabel";
 import Search from "./pages/Search";
-import AdminUsers from "./pages/AdminUsers";
+import AdminDashboard from "./pages/AdminDashboard";
 import Scanner from "./pages/Scanner";
 
 export default function App() {
@@ -73,7 +73,7 @@ export default function App() {
         path="/admin/users"
         element={
           <ProtectedRoute requireAdmin>
-            <AdminUsers />
+            <AdminDashboard />
           </ProtectedRoute>
         }
       />

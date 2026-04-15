@@ -18,8 +18,8 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  // Admins have no access to the regular bins dashboard
-  if (session.user.role === "admin" && location.pathname === "/dashboard") {
+  // Admins only have access to /admin/* routes
+  if (session.user.role === "admin" && !location.pathname.startsWith("/admin")) {
     return <Navigate to="/admin/users" replace />;
   }
 
