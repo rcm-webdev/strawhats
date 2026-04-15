@@ -33,7 +33,12 @@ export default function Login() {
       setServerError(result.error.message ?? "Sign in failed")
       return
     }
-    navigate(redirect, { replace: true })
+    const role = result.data?.user?.role
+    if (role === "admin") {
+      navigate("/admin/users", { replace: true })
+    } else {
+      navigate(redirect, { replace: true })
+    }
   }
 
   return (
