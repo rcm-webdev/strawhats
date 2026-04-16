@@ -3,8 +3,11 @@ import { test, expect } from "../fixtures";
 test.describe("Admin API", () => {
   test.describe("GET /api/admin/users", () => {
     test("returns 401 for unauthenticated requests", async ({ playwright }) => {
+      // Explicitly empty storageState — without this, Playwright inherits
+      // the chromium project's default storageState (user.json).
       const ctx = await playwright.request.newContext({
         baseURL: "http://localhost:3001",
+        storageState: { cookies: [], origins: [] },
       });
       const response = await ctx.get("/api/admin/users");
       expect(response.status()).toBe(401);
@@ -37,7 +40,9 @@ test.describe("Admin API", () => {
     test("returns 403 for regular user", async ({ apiContext, adminApiContext }) => {
       const usersResponse = await adminApiContext.get("/api/admin/users");
       const users = await usersResponse.json();
-      const regularUser = users.find((u: { role: string | null }) => u.role !== "admin");
+      // Use the bannable user so we don't affect the e2e user's session
+      const bannableEmail = process.env.E2E_BANNABLE_EMAIL ?? "bannable@strawhats.test";
+      const regularUser = users.find((u: { email: string }) => u.email === bannableEmail);
       expect(regularUser).toBeDefined();
 
       const response = await apiContext.post(`/api/admin/users/${regularUser.id}/ban`);
@@ -47,9 +52,10 @@ test.describe("Admin API", () => {
     test("admin can ban and unban a user", async ({ adminApiContext }) => {
       const usersResponse = await adminApiContext.get("/api/admin/users");
       const users = await usersResponse.json();
-      const regularUser = users.find((u: { role: string | null; email: string }) =>
-        u.role !== "admin" && u.email !== "admin@strawhats.test"
-      );
+      // Use the dedicated bannable user — banning deletes sessions, which would
+      // invalidate apiContext for other tests if we used the e2e user.
+      const bannableEmail = process.env.E2E_BANNABLE_EMAIL ?? "bannable@strawhats.test";
+      const regularUser = users.find((u: { email: string }) => u.email === bannableEmail);
       expect(regularUser).toBeDefined();
 
       // Ban
@@ -92,7 +98,8 @@ test.describe("Admin API", () => {
     test("returns 403 for regular user", async ({ apiContext, adminApiContext }) => {
       const usersResponse = await adminApiContext.get("/api/admin/users");
       const users = await usersResponse.json();
-      const regularUser = users.find((u: { role: string | null }) => u.role !== "admin");
+      const bannableEmail = process.env.E2E_BANNABLE_EMAIL ?? "bannable@strawhats.test";
+      const regularUser = users.find((u: { email: string }) => u.email === bannableEmail);
 
       const response = await apiContext.delete(`/api/admin/users/${regularUser.id}`);
       expect(response.status()).toBe(403);
@@ -110,18 +117,23 @@ test.describe("Admin API", () => {
 
   test.describe("ban invalidates session", () => {
     test("banned user cannot access protected routes", async ({ adminApiContext, playwright }) => {
-      // Get a non-admin user to ban
+      // Use the dedicated bannable user to avoid invalidating the e2e user's session
       const usersResponse = await adminApiContext.get("/api/admin/users");
       const users = await usersResponse.json();
-      const regularUser = users.find((u: { role: string | null; email: string }) =>
-        u.role !== "admin" && u.email !== "admin@strawhats.test"
-      );
+      const bannableEmail = process.env.E2E_BANNABLE_EMAIL ?? "bannable@strawhats.test";
+      const regularUser = users.find((u: { email: string }) => u.email === bannableEmail);
       expect(regularUser).toBeDefined();
 
-      // Create a context for the regular user using the existing session
+      // Sign in as the bannable user to get a fresh session
       const userCtx = await playwright.request.newContext({
         baseURL: "http://localhost:3001",
-        storageState: "playwright/.auth/user.json",
+        storageState: { cookies: [], origins: [] },
+      });
+      await userCtx.post("/api/auth/sign-in/email", {
+        data: {
+          email: bannableEmail,
+          password: process.env.E2E_BANNABLE_PASSWORD ?? "bannable-password-123",
+        },
       });
 
       // Verify the user can access bins before ban

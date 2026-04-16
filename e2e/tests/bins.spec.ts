@@ -61,6 +61,7 @@ test.describe("Bins API", () => {
   test("GET /api/bins returns 401 when unauthenticated", async ({ playwright }) => {
     const unauthContext = await playwright.request.newContext({
       baseURL: "http://localhost:3001",
+      storageState: { cookies: [], origins: [] },
     });
     const res = await unauthContext.get("/api/bins");
     expect(res.status()).toBe(401);

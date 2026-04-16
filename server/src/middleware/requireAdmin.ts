@@ -11,7 +11,7 @@ export async function requireAdmin(
     headers: req.headers as Record<string, string>,
   });
 
-  if (!session) {
+  if (!session || !session.user) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }

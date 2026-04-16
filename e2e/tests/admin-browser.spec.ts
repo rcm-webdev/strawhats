@@ -33,8 +33,9 @@ test.describe("Admin Dashboard browser", () => {
 
   test("delete modal requires typing email to enable delete button", async ({ page }) => {
     await page.goto("/admin/users");
-    // Find a non-admin user row and click Delete
+    // Wait for table data to load before counting rows
     const rows = page.locator("tbody tr");
+    await expect(rows.first()).toBeVisible();
     const rowCount = await rows.count();
     let targetRow: Locator | null = null;
     for (let i = 0; i < rowCount; i++) {
