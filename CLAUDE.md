@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
-
+****
 ```bash
 # Development (run concurrently in separate terminals)
 npm run dev:server          # Express server on port 3001 (tsx watch)
@@ -29,40 +29,14 @@ Environment: copy `.env.example` to `.env` in the server package and fill in val
 
 All tests are Playwright E2E in the `e2e/` package. No Jest, Vitest, or unit test mocking anywhere.
 
-**Run tests after any change to server routes, middleware, auth logic, or database schema. Do not claim a feature is complete without running the full suite.**
+**Run the full suite after any change to server routes, middleware, auth logic, or database schema. Do not claim a feature is complete without passing tests.**
 
 ```bash
-npm run test:e2e              # Run full Playwright suite (required before committing)
+npm run test:e2e              # Full Playwright suite (required before committing)
 npm run test:ui --workspace=e2e  # Interactive Playwright UI
 ```
 
-**Structure:**
-- `e2e/global-setup.ts` — runs before everything; truncates all tables in `strawhats_test` via raw pg
-- `e2e/global-teardown.ts` — runs after everything; truncates again to leave DB clean
-- `e2e/db-helpers.ts` — shared `resetDatabase()` used by both global files
-- `e2e/tests/auth.setup.ts` — signs up + signs in the regular E2E user, saves session to `playwright/.auth/user.json`
-- `e2e/tests/admin.setup.ts` — signs up admin + bannable users, promotes admin via SQL, saves session to `playwright/.auth/admin.json`
-- `e2e/fixtures.ts` — exports a custom `test` with `apiContext` and `adminApiContext` fixtures (authenticated `APIRequestContext` pointing at `localhost:3001`)
-- `e2e/tests/*.spec.ts` — import from `../fixtures`, not `@playwright/test`
-
-**Test environment:**
-- Server runs against `server/.env.test` (never `server/.env`) — `DATABASE_URL` points to `strawhats_test`
-- `global-setup` runs **before** the webServer starts, so it uses pg directly and cannot call the auth API
-- Sign-up/sign-in always happens in setup projects (after the server is up)
-
-**Two test modes:**
-- **API tests** — use `{ apiContext }` or `{ adminApiContext }` fixture to hit server routes directly without a browser
-- **Browser tests** — use `{ page }` fixture; session is already loaded via `storageState`
-
-**Full execution order:**
-```
-global-setup (TRUNCATE all tables)
-  → webServer starts
-  → [setup] auth.setup.ts — sign-up/sign-in regular user
-  → [admin-setup] admin.setup.ts — sign-up/promote/sign-in admin
-  → [chromium] *.spec.ts — all specs run
-  → global-teardown (TRUNCATE all tables)
-```
+For infrastructure details (file structure, execution order, environment setup), use the `playwright-e2e-runner` agent — it has the full picture.
 
 ## Collaboration Style
 
