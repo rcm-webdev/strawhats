@@ -36,6 +36,11 @@ export default defineConfig({
       command: "npm run dev --workspace=server",
       url: "http://localhost:3001/api/health",
       reuseExistingServer: !process.env.CI,
+      env: {
+        DATABASE_URL:
+          process.env.TEST_DATABASE_URL ??
+          "postgresql://aokiji@localhost:5432/strawhats_test",
+      },
     },
     {
       command: "npm run dev --workspace=client",

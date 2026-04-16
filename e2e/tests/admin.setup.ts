@@ -2,8 +2,13 @@ import { test as setup, expect } from "@playwright/test";
 import path from "path";
 import dotenv from "dotenv";
 
-// Load server env so Prisma can connect to the database
+// Load server env so other vars (BETTER_AUTH_SECRET, etc.) are available
 dotenv.config({ path: path.join(__dirname, "../../server/.env") });
+
+// Override DATABASE_URL to use the isolated test database
+process.env.DATABASE_URL =
+  process.env.TEST_DATABASE_URL ??
+  "postgresql://aokiji@localhost:5432/strawhats_test";
 
 // Import after dotenv so DATABASE_URL is available
 const { prisma } = await import("../../server/src/db/prisma");
