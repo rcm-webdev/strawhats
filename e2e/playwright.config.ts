@@ -1,6 +1,17 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+
+// Read all test env vars from server/.env.test so the test server is fully
+// isolated — nothing leaks in from the developer's real server/.env.
+const testEnv = dotenv.parse(
+  fs.readFileSync(path.resolve(__dirname, "../server/.env.test"))
+);
 
 export default defineConfig({
+  globalSetup: "./global-setup",
+  globalTeardown: "./global-teardown",
   testDir: "./tests",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -33,17 +44,13 @@ export default defineConfig({
   ],
   webServer: [
     {
-      // Always start a fresh server so DATABASE_URL is always strawhats_test.
+      // Start a fresh server using only .env.test vars — never touches server/.env.
       // If port 3001 is in use, stop your dev server before running tests.
       command: "npm run dev --workspace=server",
       cwd: "../",
       url: "http://localhost:3001/api/health",
       reuseExistingServer: false,
-      env: {
-        DATABASE_URL:
-          process.env.TEST_DATABASE_URL ??
-          "postgresql://aokiji@localhost:5432/strawhats_test",
-      },
+      env: testEnv,
     },
     {
       command: "npm run dev --workspace=client",

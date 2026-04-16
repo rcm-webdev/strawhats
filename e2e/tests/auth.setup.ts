@@ -7,7 +7,6 @@ const authFile = path.join(__dirname, "../playwright/.auth/user.json");
 // It signs in via the API (no UI needed), then saves the session cookie
 // to playwright/.auth/user.json so every test starts already logged in.
 setup("authenticate", async ({ request }) => {
-  // Sign up first (idempotent — will 400 if user already exists, which is fine)
   await request.post("http://localhost:3001/api/auth/sign-up/email", {
     data: {
       email: process.env.E2E_USER_EMAIL ?? "e2e@strawhats.test",
