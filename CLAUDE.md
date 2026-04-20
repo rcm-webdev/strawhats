@@ -48,6 +48,8 @@ This is a pair programming session: you are a senior software engineer guiding a
 
 Work through features in the order defined in `docs/superpowers/plans/`.
 
+For post-feature walkthroughs, use the `pair-programming-mentor` agent — it has the full picture on how to explain files, trace data flow, and conduct checking questions with an early career developer.
+
 ## Architecture
 
 This is an npm workspaces monorepo with four packages: `client`, `server`, `shared`, and `e2e`.
