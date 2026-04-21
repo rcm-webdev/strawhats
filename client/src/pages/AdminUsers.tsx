@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { authClient } from "../lib/auth-client";
 import type { User } from "@strawhats/shared";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -27,28 +35,26 @@ export default function AdminUsers() {
       {loading && <p>Loading users...</p>}
       {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: "left", padding: "8px", borderBottom: "2px solid #ccc" }}>Email</th>
-            <th style={{ textAlign: "left", padding: "8px", borderBottom: "2px solid #ccc" }}>Name</th>
-            <th style={{ textAlign: "left", padding: "8px", borderBottom: "2px solid #ccc" }}>Role</th>
-            <th style={{ textAlign: "left", padding: "8px", borderBottom: "2px solid #ccc" }}>Joined</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Email</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Joined</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {users.map((user) => (
-            <tr key={user.id}>
-              <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.email}</td>
-              <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.name}</td>
-              <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.role}</td>
-              <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                {new Date(user.createdAt).toLocaleDateString()}
-              </td>
-            </tr>
+            <TableRow key={user.id}>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.name}</TableCell>
+              <TableCell>{user.role}</TableCell>
+              <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
