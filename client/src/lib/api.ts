@@ -1,15 +1,20 @@
-const DEFAULT_HEADERS: HeadersInit = {
-  "Content-Type": "application/json",
-};
+import axios, { AxiosError, type AxiosResponse } from "axios";
+
+const axiosInstance = axios.create({
+  withCredentials: true,
+  headers: { "Content-Type": "application/json" },
+});
 
 export async function apiFetch(
   path: string,
   options: RequestInit = {}
-): Promise<Response> {
-  return fetch(path, {
-    credentials: "include",
-    headers: DEFAULT_HEADERS,
-    ...options,
+): Promise<AxiosResponse> {
+  const { body, method = "GET", headers } = options;
+  return axiosInstance.request({
+    url: path,
+    method,
+    data: body,
+    headers: headers as Record<string, string> | undefined,
   });
 }
 
@@ -17,12 +22,15 @@ export async function apiFetchJson<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const res = await apiFetch(path, options);
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-    throw new Error((body as { error: string }).error ?? `HTTP ${res.status}`);
+  try {
+    const res = await apiFetch(path, options);
+    return res.data as T;
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      const message =
+        err.response?.data?.error ?? `HTTP ${err.response?.status ?? "unknown"}`;
+      throw new Error(message);
+    }
+    throw err;
   }
-
-  return res.json() as Promise<T>;
 }
