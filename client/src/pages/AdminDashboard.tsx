@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { apiFetchJson } from "../lib/api";
+import { apiFetch, apiFetchJson } from "../lib/api";
 import { signOut, useSession } from "../lib/auth-client";
 import DeleteUserModal from "../components/DeleteUserModal";
 import type { AdminUser } from "@strawhats/shared";
@@ -33,14 +33,9 @@ export default function AdminDashboard() {
     setActionError(null);
     const action = user.banned ? "unban" : "ban";
     try {
-      const response = await fetch(`/api/admin/users/${user.id}/${action}`, {
+      await apiFetch(`/api/admin/users/${user.id}/${action}`, {
         method: "POST",
-        credentials: "include",
       });
-      if (!response.ok) {
-        const body = await response.json();
-        throw new Error(body.error ?? "Action failed");
-      }
       loadUsers();
     } catch (e) {
       setActionError(e instanceof Error ? e.message : "Action failed");
@@ -48,14 +43,7 @@ export default function AdminDashboard() {
   }
 
   async function handleDelete(user: AdminUser) {
-    const response = await fetch(`/api/admin/users/${user.id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-    if (!response.ok) {
-      const body = await response.json();
-      throw new Error(body.error ?? "Delete failed");
-    }
+    await apiFetch(`/api/admin/users/${user.id}`, { method: "DELETE" });
     setPendingDelete(null);
     loadUsers();
   }
