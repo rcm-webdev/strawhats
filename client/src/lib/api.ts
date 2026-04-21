@@ -13,7 +13,7 @@ export async function apiFetch(
   return axiosInstance.request({
     url: path,
     method,
-    data: body,
+    data: typeof body === "string" ? JSON.parse(body) : body,
     headers: headers as Record<string, string> | undefined,
   });
 }
