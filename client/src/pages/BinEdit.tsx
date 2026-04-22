@@ -42,7 +42,7 @@ export default function BinEdit() {
     }
   }
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return null;
 
   return (
     <div style={{ maxWidth: 500, margin: "40px auto", padding: "0 16px" }}>

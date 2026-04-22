@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { apiFetchJson } from "../lib/api";
 import { signOut, useSession } from "../lib/auth-client";
 import DeleteUserModal from "../components/DeleteUserModal";
+import { Skeleton } from "../components/ui/skeleton";
 import type { AdminUser } from "@strawhats/shared";
 
 export default function AdminDashboard() {
@@ -57,60 +58,67 @@ export default function AdminDashboard() {
         <button onClick={handleSignOut}>Sign Out</button>
       </header>
 
-      {loading && <p>Loading users…</p>}
       {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
       {actionError && <p role="alert" style={{ color: "red" }}>{actionError}</p>}
 
-      {!loading && (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              {["Email", "Name", "Role", "Status", "Joined", "Actions"].map((h) => (
-                <th
-                  key={h}
-                  style={{ textAlign: "left", padding: "8px", borderBottom: "2px solid #ccc" }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} style={{ opacity: isSelf(user) ? 0.6 : 1 }}>
-                <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.email}</td>
-                <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.name}</td>
-                <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.role ?? "user"}</td>
-                <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                  {user.banned ? "Deactivated" : "Active"}
-                </td>
-                <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </td>
-                <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                  <button
-                    onClick={() => handleToggleBan(user)}
-                    disabled={isSelf(user)}
-                    style={{ marginRight: 8 }}
-                  >
-                    {user.banned ? "Reactivate" : "Deactivate"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActionError(null);
-                      setPendingDelete(user);
-                    }}
-                    disabled={isSelf(user)}
-                    style={{ color: "#dc2626" }}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            {["Email", "Name", "Role", "Status", "Joined", "Actions"].map((h) => (
+              <th
+                key={h}
+                style={{ textAlign: "left", padding: "8px", borderBottom: "2px solid #ccc" }}
+              >
+                {h}
+              </th>
             ))}
-          </tbody>
-        </table>
-      )}
+          </tr>
+        </thead>
+        <tbody>
+          {loading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i}>
+                  {[200, 120, 60, 60, 80, 120].map((w, j) => (
+                    <td key={j} style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
+                      <Skeleton style={{ height: 16, width: w }} />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            : users.map((user) => (
+                <tr key={user.id} style={{ opacity: isSelf(user) ? 0.6 : 1 }}>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.email}</td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.name}</td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>{user.role ?? "user"}</td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
+                    {user.banned ? "Deactivated" : "Active"}
+                  </td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
+                    <button
+                      onClick={() => handleToggleBan(user)}
+                      disabled={isSelf(user)}
+                      style={{ marginRight: 8 }}
+                    >
+                      {user.banned ? "Reactivate" : "Deactivate"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActionError(null);
+                        setPendingDelete(user);
+                      }}
+                      disabled={isSelf(user)}
+                      style={{ color: "#dc2626" }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+        </tbody>
+      </table>
 
       {pendingDelete && (
         <DeleteUserModal

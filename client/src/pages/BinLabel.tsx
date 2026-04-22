@@ -18,7 +18,7 @@ export default function BinLabel() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return null;
   if (error) return <p role="alert" style={{ color: "red" }}>{error}</p>;
   if (!bin) return <p>Bin not found.</p>;
 

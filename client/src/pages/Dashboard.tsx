@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { apiFetchJson } from "../lib/api";
 import { signOut } from "../lib/auth-client";
 import BinCard from "../components/BinCard";
+import { Skeleton } from "../components/ui/skeleton";
 import type { Bin } from "@strawhats/shared";
 
 export default function Dashboard() {
@@ -28,6 +29,12 @@ export default function Dashboard() {
   }
 
   const locations = [...new Set(bins.map((b) => b.location))].sort();
+
+  const gridStyle: React.CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+    gap: 16,
+  };
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: 16 }}>
@@ -62,16 +69,22 @@ export default function Dashboard() {
         </select>
       </div>
 
-      {loading && <p>Loading bins...</p>}
       {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
-        {bins.map((bin) => (
-          <BinCard key={bin.id} bin={bin} />
-        ))}
-        {!loading && bins.length === 0 && (
-          <p>No bins yet. <Link to="/bins/new">Create your first bin.</Link></p>
-        )}
+      <div style={gridStyle}>
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} style={{ border: "1px solid #ccc", borderRadius: 8, padding: 16 }}>
+                <Skeleton style={{ height: 20, width: "75%", marginBottom: 8 }} />
+                <Skeleton style={{ height: 16, width: "50%", marginBottom: 8 }} />
+                <Skeleton style={{ height: 14, width: "100%", marginBottom: 8 }} />
+                <Skeleton style={{ height: 14, width: "30%" }} />
+              </div>
+            ))
+          : bins.length === 0
+            ? <p>No bins yet. <Link to="/bins/new">Create your first bin.</Link></p>
+            : bins.map((bin) => <BinCard key={bin.id} bin={bin} />)
+        }
       </div>
     </div>
   );

@@ -32,7 +32,6 @@ export default function AdminUsers() {
       <Link to="/dashboard">← Back</Link>
       <h1>User Management</h1>
 
-      {loading && <p>Loading users...</p>}
       {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
 
       <Table>

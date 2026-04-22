@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
   const location = useLocation();
 
   if (isPending) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (!session) {
