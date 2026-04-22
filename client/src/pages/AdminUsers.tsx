@@ -27,6 +27,8 @@ export default function AdminUsers() {
       .finally(() => setLoading(false));
   }, []);
 
+  if (loading) return null;
+
   return (
     <div style={{ maxWidth: 800, margin: "40px auto", padding: "0 16px" }}>
       <Link to="/dashboard">← Back</Link>
