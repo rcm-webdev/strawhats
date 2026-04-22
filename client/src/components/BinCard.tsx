@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { MapPin } from "lucide-react";
 import type { Bin } from "@strawhats/shared";
 
 interface BinCardProps {
@@ -11,7 +12,7 @@ export default function BinCard({ bin }: BinCardProps) {
       <h3>
         <Link to={`/bins/${bin.id}`}>{bin.name}</Link>
       </h3>
-      <p>📍 {bin.location}</p>
+      <p><MapPin size={14} style={{ display: "inline", verticalAlign: "middle" }} /> {bin.location}</p>
       {bin.description && <p>{bin.description}</p>}
       <p>{bin.items?.length ?? 0} item(s)</p>
       <Link to={`/bins/${bin.id}/edit`}>Edit</Link>

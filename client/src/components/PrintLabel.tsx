@@ -1,4 +1,5 @@
 import QRCode from "./QRCode";
+import { MapPin } from "lucide-react";
 import type { Bin } from "@strawhats/shared";
 
 interface PrintLabelProps {
@@ -25,7 +26,7 @@ export default function PrintLabel({ bin, appUrl }: PrintLabelProps) {
       <QRCode url={binUrl} size={200} />
       <div style={{ marginTop: 8 }}>
         <div style={{ fontSize: 18, fontWeight: "bold" }}>{bin.name}</div>
-        <div style={{ fontSize: 14 }}>📍 {bin.location}</div>
+        <div style={{ fontSize: 14 }}><MapPin size={14} style={{ display: "inline", verticalAlign: "middle" }} /> {bin.location}</div>
         {bin.description && (
           <div style={{ fontSize: 12, color: "#444", marginTop: 4 }}>{bin.description}</div>
         )}

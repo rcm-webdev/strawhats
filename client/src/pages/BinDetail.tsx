@@ -1,4 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
+import { MapPin, X } from "lucide-react";
 import { useParams, Link } from "react-router";
 import { apiFetch, apiFetchJson } from "../lib/api";
 import QRCode from "../components/QRCode";
@@ -58,7 +59,7 @@ export default function BinDetail() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <h1>{bin.name}</h1>
-          <p>📍 {bin.location}</p>
+          <p><MapPin size={14} style={{ display: "inline", verticalAlign: "middle" }} /> {bin.location}</p>
           {bin.description && <p>{bin.description}</p>}
         </div>
         <div>
@@ -85,7 +86,7 @@ export default function BinDetail() {
             <strong>{item.name}</strong>
             {item.description && ` — ${item.description}`}
             {" "}
-            <button onClick={() => handleDeleteItem(item.id)}>✕</button>
+            <button onClick={() => handleDeleteItem(item.id)}><X size={14} /></button>
           </li>
         ))}
       </ul>

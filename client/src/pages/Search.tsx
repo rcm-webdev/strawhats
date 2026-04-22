@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Package, MapPin } from "lucide-react";
 import { useSearchParams, Link } from "react-router";
 import { apiFetchJson } from "../lib/api";
 import type { SearchResult } from "@strawhats/shared";
@@ -60,9 +61,9 @@ export default function Search() {
             {result.item.description && <span> — {result.item.description}</span>}
             <br />
             <span style={{ color: "#666" }}>
-              📦 <Link to={`/bins/${result.binId}`}>{result.binName}</Link>
+              <Package size={14} style={{ display: "inline", verticalAlign: "middle" }} /> <Link to={`/bins/${result.binId}`}>{result.binName}</Link>
               {" · "}
-              📍 {result.binLocation}
+              <MapPin size={14} style={{ display: "inline", verticalAlign: "middle" }} /> {result.binLocation}
             </span>
           </li>
         ))}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ScanLine } from "lucide-react";
 import { Link } from "react-router";
 import { apiFetchJson } from "../lib/api";
 import { signOut } from "../lib/auth-client";
@@ -41,7 +42,7 @@ export default function Dashboard() {
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1>My Bins</h1>
         <div>
-          <Link to="/scan">📷 Scan</Link>
+          <Link to="/scan"><ScanLine size={16} style={{ display: "inline", verticalAlign: "middle" }} /> Scan</Link>
           {" | "}
           <Link to="/bins/new">+ New Bin</Link>
           {" | "}

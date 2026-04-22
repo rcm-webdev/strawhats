@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Printer } from "lucide-react";
 import { useParams, Link } from "react-router";
 import { apiFetchJson } from "../lib/api";
 import PrintLabel from "../components/PrintLabel";
@@ -44,7 +45,7 @@ export default function BinLabel() {
           onClick={() => window.print()}
           style={{ marginBottom: 24, padding: "8px 16px" }}
         >
-          🖨️ Print Label
+          <Printer size={16} style={{ display: "inline", verticalAlign: "middle" }} /> Print Label
         </button>
       </div>
 
