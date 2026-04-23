@@ -1,31 +1,20 @@
 import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router";
-import { apiFetchJson } from "../lib/api";
-import type { Bin } from "@strawhats/shared";
+import { useCreateBin } from "../hooks/useBins";
 
 export default function BinNew() {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const createBin = useCreateBin();
 
-  async function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    try {
-      const bin = await apiFetchJson<Bin>("/api/bins", {
-        method: "POST",
-        body: JSON.stringify({ name, location, description: description || undefined }),
-      });
-      navigate(`/bins/${bin.id}`);
-    } catch (e) {
-      setError((e as Error).message);
-      setLoading(false);
-    }
+    createBin.mutate(
+      { name, location, description: description || undefined },
+      { onSuccess: (bin) => navigate(`/bins/${bin.id}`) }
+    );
   }
 
   return (
@@ -63,9 +52,11 @@ export default function BinNew() {
             rows={3}
           />
         </div>
-        {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create Bin"}
+        {createBin.isError && (
+          <p role="alert" style={{ color: "red" }}>{createBin.error.message}</p>
+        )}
+        <button type="submit" disabled={createBin.isPending}>
+          {createBin.isPending ? "Creating..." : "Create Bin"}
         </button>
       </form>
     </div>

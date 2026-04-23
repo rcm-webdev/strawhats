@@ -1,56 +1,35 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { MapPin, X } from "lucide-react";
 import { useParams, Link } from "react-router";
-import { apiFetch, apiFetchJson } from "../lib/api";
 import QRCode from "../components/QRCode";
-import type { Bin, Item } from "@strawhats/shared";
+import { useBin } from "../hooks/useBin";
+import { useAddItem, useDeleteItem } from "../hooks/useItems";
 
 export default function BinDetail() {
   const { id } = useParams<{ id: string }>();
-  const [bin, setBin] = useState<Bin | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [newItemName, setNewItemName] = useState("");
   const [newItemDesc, setNewItemDesc] = useState("");
-  const [addingItem, setAddingItem] = useState(false);
 
-  useEffect(() => {
-    if (!id) return;
-    apiFetchJson<Bin>(`/api/bins/${id}`)
-      .then(setBin)
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [id]);
+  const { data: bin, isPending, isError, error } = useBin(id!);
+  const addItem = useAddItem(id!);
+  const deleteItem = useDeleteItem(id!);
 
-  async function handleAddItem(e: FormEvent) {
+  function handleAddItem(e: FormEvent) {
     e.preventDefault();
-    if (!id || !newItemName.trim()) return;
-    setAddingItem(true);
-
-    try {
-      const item = await apiFetchJson<Item>(`/api/bins/${id}/items`, {
-        method: "POST",
-        body: JSON.stringify({ name: newItemName.trim(), description: newItemDesc || undefined }),
-      });
-      setBin((prev) => prev ? { ...prev, items: [...(prev.items ?? []), item] } : prev);
-      setNewItemName("");
-      setNewItemDesc("");
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setAddingItem(false);
-    }
-  }
-
-  async function handleDeleteItem(itemId: string) {
-    await apiFetch(`/api/items/${itemId}`, { method: "DELETE" });
-    setBin((prev) =>
-      prev ? { ...prev, items: (prev.items ?? []).filter((i) => i.id !== itemId) } : prev
+    if (!newItemName.trim()) return;
+    addItem.mutate(
+      { name: newItemName.trim(), description: newItemDesc || undefined },
+      {
+        onSuccess: () => {
+          setNewItemName("");
+          setNewItemDesc("");
+        },
+      }
     );
   }
 
-  if (loading) return null;
-  if (error) return <p role="alert" style={{ color: "red" }}>{error}</p>;
+  if (isPending) return null;
+  if (isError) return <p role="alert" style={{ color: "red" }}>{error.message}</p>;
   if (!bin) return <p>Bin not found.</p>;
 
   return (
@@ -70,10 +49,7 @@ export default function BinDetail() {
       </div>
 
       <div style={{ margin: "16px 0" }}>
-        <QRCode
-          url={`${window.location.origin}/bins/${bin.id}`}
-          size={160}
-        />
+        <QRCode url={`${window.location.origin}/bins/${bin.id}`} size={160} />
         <p style={{ fontSize: 12, color: "#666", margin: "4px 0" }}>
           Scan to view this bin
         </p>
@@ -86,7 +62,9 @@ export default function BinDetail() {
             <strong>{item.name}</strong>
             {item.description && ` — ${item.description}`}
             {" "}
-            <button onClick={() => handleDeleteItem(item.id)}><X size={14} /></button>
+            <button onClick={() => deleteItem.mutate(item.id)}>
+              <X size={14} />
+            </button>
           </li>
         ))}
       </ul>
@@ -106,8 +84,8 @@ export default function BinDetail() {
           value={newItemDesc}
           onChange={(e) => setNewItemDesc(e.target.value)}
         />
-        <button type="submit" disabled={addingItem}>
-          {addingItem ? "Adding..." : "Add"}
+        <button type="submit" disabled={addItem.isPending}>
+          {addItem.isPending ? "Adding..." : "Add"}
         </button>
       </form>
     </div>

@@ -1,7 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useParams, useNavigate, Link } from "react-router";
-import { apiFetchJson } from "../lib/api";
-import type { Bin } from "@strawhats/shared";
+import { useBin, useUpdateBin } from "../hooks/useBin";
 
 export default function BinEdit() {
   const { id } = useParams<{ id: string }>();
@@ -9,40 +8,27 @@ export default function BinEdit() {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { data: bin, isPending } = useBin(id!);
+  const updateBin = useUpdateBin(id!);
 
   useEffect(() => {
-    if (!id) return;
-    apiFetchJson<Bin>(`/api/bins/${id}`)
-      .then((bin) => {
-        setName(bin.name);
-        setLocation(bin.location);
-        setDescription(bin.description ?? "");
-      })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    try {
-      await apiFetchJson(`/api/bins/${id}`, {
-        method: "PUT",
-        body: JSON.stringify({ name, location, description: description || null }),
-      });
-      navigate(`/bins/${id}`);
-    } catch (e) {
-      setError((e as Error).message);
-      setSaving(false);
+    if (bin) {
+      setName(bin.name);
+      setLocation(bin.location);
+      setDescription(bin.description ?? "");
     }
+  }, [bin]);
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    updateBin.mutate(
+      { name, location, description: description || null },
+      { onSuccess: () => navigate(`/bins/${id}`) }
+    );
   }
 
-  if (loading) return null;
+  if (isPending) return null;
 
   return (
     <div style={{ maxWidth: 500, margin: "40px auto", padding: "0 16px" }}>
@@ -78,9 +64,11 @@ export default function BinEdit() {
             rows={3}
           />
         </div>
-        {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
-        <button type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Save Changes"}
+        {updateBin.isError && (
+          <p role="alert" style={{ color: "red" }}>{updateBin.error.message}</p>
+        )}
+        <button type="submit" disabled={updateBin.isPending}>
+          {updateBin.isPending ? "Saving..." : "Save Changes"}
         </button>
       </form>
     </div>

@@ -1,52 +1,31 @@
-import { useState, useEffect, useCallback } from "react";
-import { apiFetchJson } from "../lib/api";
+import { useState } from "react";
 import { signOut, useSession } from "../lib/auth-client";
 import DeleteUserModal from "../components/DeleteUserModal";
 import { Skeleton } from "../components/ui/skeleton";
+import { useAdminUsers, useBanUser, useDeleteUser } from "../hooks/useAdminUsers";
 import type { AdminUser } from "@strawhats/shared";
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<AdminUser | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
 
-  const loadUsers = useCallback(() => {
-    setLoading(true);
-    apiFetchJson<AdminUser[]>("/api/admin/users")
-      .then(setUsers)
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+  const { data: users = [], isPending, isError, error } = useAdminUsers();
+  const banUser = useBanUser();
+  const deleteUser = useDeleteUser();
 
   async function handleSignOut() {
     await signOut();
     window.location.href = "/login";
   }
 
-  async function handleToggleBan(user: AdminUser) {
-    setActionError(null);
-    const action = user.banned ? "unban" : "ban";
-    try {
-      await apiFetchJson<void>(`/api/admin/users/${user.id}/${action}`, {
-        method: "POST",
-      });
-      loadUsers();
-    } catch (e) {
-      setActionError(e instanceof Error ? e.message : "Action failed");
-    }
+  function handleToggleBan(user: AdminUser) {
+    banUser.mutate({ id: user.id, banned: user.banned });
   }
 
-  async function handleDelete(user: AdminUser) {
-    await apiFetchJson<void>(`/api/admin/users/${user.id}`, { method: "DELETE" });
-    setPendingDelete(null);
-    loadUsers();
+  function handleDelete(user: AdminUser) {
+    deleteUser.mutate(user.id, {
+      onSuccess: () => setPendingDelete(null),
+    });
   }
 
   const isSelf = (user: AdminUser) => user.id === session?.user?.id;
@@ -58,8 +37,9 @@ export default function AdminDashboard() {
         <button onClick={handleSignOut}>Sign Out</button>
       </header>
 
-      {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
-      {actionError && <p role="alert" style={{ color: "red" }}>{actionError}</p>}
+      {isError && <p role="alert" style={{ color: "red" }}>{error.message}</p>}
+      {banUser.isError && <p role="alert" style={{ color: "red" }}>{banUser.error.message}</p>}
+      {deleteUser.isError && <p role="alert" style={{ color: "red" }}>{deleteUser.error.message}</p>}
 
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
@@ -75,7 +55,7 @@ export default function AdminDashboard() {
           </tr>
         </thead>
         <tbody>
-          {loading
+          {isPending
             ? Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i}>
                   {[200, 120, 60, 60, 80, 120].map((w, j) => (
@@ -105,10 +85,7 @@ export default function AdminDashboard() {
                       {user.banned ? "Reactivate" : "Deactivate"}
                     </button>
                     <button
-                      onClick={() => {
-                        setActionError(null);
-                        setPendingDelete(user);
-                      }}
+                      onClick={() => setPendingDelete(user)}
                       disabled={isSelf(user)}
                       style={{ color: "#dc2626" }}
                     >

@@ -1,31 +1,18 @@
-import { useState, useEffect } from "react";
 import { Printer } from "lucide-react";
 import { useParams, Link } from "react-router";
-import { apiFetchJson } from "../lib/api";
 import PrintLabel from "../components/PrintLabel";
-import type { Bin } from "@strawhats/shared";
+import { useBin } from "../hooks/useBin";
 
 export default function BinLabel() {
   const { id } = useParams<{ id: string }>();
-  const [bin, setBin] = useState<Bin | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: bin, isPending, isError, error } = useBin(id!);
 
-  useEffect(() => {
-    if (!id) return;
-    apiFetchJson<Bin>(`/api/bins/${id}`)
-      .then(setBin)
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  if (loading) return null;
-  if (error) return <p role="alert" style={{ color: "red" }}>{error}</p>;
+  if (isPending) return null;
+  if (isError) return <p role="alert" style={{ color: "red" }}>{error.message}</p>;
   if (!bin) return <p>Bin not found.</p>;
 
   return (
     <>
-      {/* Hide everything except .print-label when printing */}
       <style>{`
         @media print {
           body * { visibility: hidden; }

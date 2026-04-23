@@ -1,27 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Package, MapPin } from "lucide-react";
 import { useSearchParams, Link } from "react-router";
-import { apiFetchJson } from "../lib/api";
-import type { SearchResult } from "@strawhats/shared";
+import { useSearch } from "../hooks/useSearch";
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get("q") ?? "";
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState(q);
 
-  useEffect(() => {
-    if (!q.trim()) return;
-    setLoading(true);
-    setError(null);
-
-    apiFetchJson<SearchResult[]>(`/api/search?q=${encodeURIComponent(q)}`)
-      .then(setResults)
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [q]);
+  const { data: results = [], isPending, isError, error } = useSearch(q);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -47,10 +34,10 @@ export default function Search() {
         <button type="submit">Search</button>
       </form>
 
-      {loading && <p>Searching...</p>}
-      {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
+      {isPending && <p>Searching...</p>}
+      {isError && <p role="alert" style={{ color: "red" }}>{error.message}</p>}
 
-      {!loading && q && results.length === 0 && (
+      {!isPending && q && results.length === 0 && (
         <p>No items found for "{q}".</p>
       )}
 
@@ -61,7 +48,8 @@ export default function Search() {
             {result.item.description && <span> — {result.item.description}</span>}
             <br />
             <span style={{ color: "#666" }}>
-              <Package size={14} style={{ display: "inline", verticalAlign: "middle" }} /> <Link to={`/bins/${result.binId}`}>{result.binName}</Link>
+              <Package size={14} style={{ display: "inline", verticalAlign: "middle" }} />{" "}
+              <Link to={`/bins/${result.binId}`}>{result.binName}</Link>
               {" · "}
               <MapPin size={14} style={{ display: "inline", verticalAlign: "middle" }} /> {result.binLocation}
             </span>

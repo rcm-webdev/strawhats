@@ -1,33 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ScanLine } from "lucide-react";
 import { Link } from "react-router";
-import { apiFetchJson } from "../lib/api";
 import { signOut } from "../lib/auth-client";
 import BinCard from "../components/BinCard";
 import { Skeleton } from "../components/ui/skeleton";
-import type { Bin } from "@strawhats/shared";
+import { useBins } from "../hooks/useBins";
 
 export default function Dashboard() {
-  const [bins, setBins] = useState<Bin[]>([]);
   const [location, setLocation] = useState("");
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (location) params.set("location", location);
-
-    apiFetchJson<Bin[]>(`/api/bins?${params.toString()}`)
-      .then(setBins)
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [location]);
-
-  async function handleSignOut() {
-    await signOut();
-    window.location.href = "/login";
-  }
+  const { data: bins = [], isPending, isError, error } = useBins(location || undefined);
 
   const locations = [...new Set(bins.map((b) => b.location))].sort();
 
@@ -36,6 +19,11 @@ export default function Dashboard() {
     gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
     gap: 16,
   };
+
+  async function handleSignOut() {
+    await signOut();
+    window.location.href = "/login";
+  }
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: 16 }}>
@@ -70,10 +58,10 @@ export default function Dashboard() {
         </select>
       </div>
 
-      {error && <p role="alert" style={{ color: "red" }}>{error}</p>}
+      {isError && <p role="alert" style={{ color: "red" }}>{error.message}</p>}
 
       <div style={gridStyle}>
-        {loading
+        {isPending
           ? Array.from({ length: 6 }).map((_, i) => (
               <div key={i} style={{ border: "1px solid #ccc", borderRadius: 8, padding: 16 }}>
                 <Skeleton style={{ height: 20, width: "75%", marginBottom: 8 }} />
