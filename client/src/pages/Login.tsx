@@ -30,7 +30,12 @@ export default function Login() {
     setServerError(null)
     const result = await signIn.email(values)
     if (result.error) {
-      setServerError(result.error.message ?? "Sign in failed")
+      const msg = result.error.message ?? ""
+      setServerError(
+        msg.toLowerCase().includes("banned")
+          ? "Your account has been deactivated. Contact support for help."
+          : msg || "Sign in failed"
+      )
       return
     }
     const role = result.data?.user?.role
